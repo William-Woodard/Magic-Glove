@@ -1,4 +1,4 @@
-#nathan time imported libraries
+#imported libraries for collecting input
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 import time
@@ -6,42 +6,51 @@ import cv2 as cv
 import pytesseract
 
 
-#lottie time imported libraries
+#imported libraries for processing input
 from difflib import SequenceMatcher
 
-#william time imported libraries
+#imported libraries for outputing
 import os
 
-def nathanTime():
+def ImageInput():
+    #declares camera as an object
     camera = PiCamera() 
     camera.resolution = (640, 480)              #Sets the camera resolution
     camera.framerate = 30                       #Sets the camera framerate
+    #sets camera up to interact with open CV
     rawCapture = PiRGBArray(camera, size=(640, 480))
     time.sleep(0.1)
+    #variable to store text from each image
     lines = []
     i = 0
+    #continuously loops through the cameras stream of images
     for frame in camera.capture_continuous(rawCapture, format="rgb", use_video_port=True):       
         image = frame.array
-        #image = cv.cvtColor(image, cv.COLOR_RGB2GRAY)
+        #processes image to extract text
         cv.imshow("Frame", image)
         key = cv.waitKey(1) & 0xFF
         rawCapture.truncate(0)
         text = pytesseract.image_to_string(image, config='')
+        #outputs text found
         print(text)
+        #adds text to the parameter to be passed through output
         temp = text.split("\n")
         for n in temp:
             lines.append(n)
+        #adds ##WEIRDTEXT## to mark the end of an image
         lines.append("##WEIRDTEXT##")
-        if i > 10:
-            finalText = lottieTime(lines)
-            williamTime(finalText)
+        #once 3 images have been taken, the processing code is called
+        if i > 3:
+            finalText = TextProcessing(lines)
+            AudioOutput(finalText)
+            #variables are reset
             i = 0
             lines = []
         else:
             pass
         i += 1
     
-def lottieTime(lines):
+def TextProcessing(lines):
     images = [[]] #2d list to store each images lines
     sortingList = [] #temporary list to store the lines in an image
     for x in lines:
@@ -109,11 +118,12 @@ def lottieTime(lines):
     print(finalText)
     return finalText
 
-def williamTime(finalText):
+def AudioOutput(finalText):
+    #This is a command that speaks the variable finalText
     os.system("echo '" + finalText + "' | festival --tts")
 
 
 #Main
 weAreCool = True
 while weAreCool:
-    nathanTime()
+    ImageInput()
